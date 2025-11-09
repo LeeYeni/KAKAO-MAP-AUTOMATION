@@ -8,10 +8,7 @@ import threading
 from data_handler import DataHandler
 from kakao_map import KakaoMap
 
-load_dotenv()
-FILE_PATH = os.getenv("file_path")
-FOLDER_NAME = os.getenv("folder_name")
-API_BASE = os.getenv("api_base")
+API_BASE = "https://kakao-map-automation.onrender.com"
 
 api = FastAPI(title="kakao-map-automation")
 
@@ -21,14 +18,14 @@ def root() -> dict:
 
 #---------- 1. 데이터 불러오기 & 전처리 ----------#
 @api.get("/data_processor")
-def data_processor() -> dict:
-    data_handler = DataHandler(FILE_PATH)
+def data_processor(file_path: str) -> dict:
+    data_handler = DataHandler(file_path)
     coords = data_handler.processor()
     return coords
 
 #---------- 2. 카카오맵 '즐겨찾기 추가' 기능 수행 ----------#
 @api.post("/kakao_map_task")
-def kakao_map_automation(coords: dict) -> dict:
+def kakao_map_task(data: dict) -> dict:
     kakao_map = KakaoMap()
 
     while True:
@@ -36,7 +33,7 @@ def kakao_map_automation(coords: dict) -> dict:
             break
 
     kakao_map.click("skyview")  # 스카이뷰
-    kakao_map.search_and_save(coords["coords"], FOLDER_NAME)  # 즐겨찾기 추가
+    kakao_map.search_and_save(data["coords"], data["folder_name"])  # 즐겨찾기 추가
     kakao_map.driver.quit()  # 브라우저 종료
 
     return {"status": "success"}
@@ -45,13 +42,13 @@ def kakao_map_automation(coords: dict) -> dict:
 mcp = FastMCP(name="kakao-map-automation")
 
 @mcp.tool()
-def kakao_map_automation() -> dict:
-    response = httpx.get(f"{API_BASE}/data_processor")
+def kakao_map_automation(folder_name: str, file_path: str) -> dict:
+    response = httpx.get(f"{API_BASE}/data_processor", params={"file_path": file_path})
     coords = response.json()
 
     post_response = httpx.post(
         f"{API_BASE}/kakao_map_task",
-        json={"coords": coords},
+        json={"coords": coords, "folder_name": folder_name},
         timeout=httpx.Timeout(300.0)
     )
 
