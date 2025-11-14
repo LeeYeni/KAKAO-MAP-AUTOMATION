@@ -38,14 +38,14 @@ class KakaoMap():
 
     #---------- 2. element가 존재할 때 클릭하는 메서드 ----------#
     def click(self, class_name: str) -> None:
-        WebDriverWait(self.driver, timeout=20).until(
+        WebDriverWait(self.driver, timeout=100).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, f".{class_name}"))
         )
         self.driver.find_element(By.CSS_SELECTOR, f".{class_name}").click()
 
     #---------- 3. 즐겨찾기 폴더가 존재할 때 클릭하는 메서드 ----------#
     def select_folder(self, folder_name: str) -> None:
-        WebDriverWait(self.driver, timeout=20).until(
+        WebDriverWait(self.driver, timeout=100).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, f".txt_folder"))
         )
         folder_link = self.driver.find_element(
@@ -73,7 +73,7 @@ class KakaoMap():
         #     "강남역": (37.4979, 127.0276),
         # }
 
-        for idx, place, [x, y] in enumerate(coords.items(), start=1):
+        for idx, (place, [x, y]) in enumerate(coords.items(), start=1):
             # 경위도 검색
             search_box = self.driver.find_element(By.ID, "search.keyword.query")
             search_box.clear()
@@ -89,4 +89,5 @@ class KakaoMap():
             self.click("btn_submit")  # 저장
 
             if idx % 10 == 0:
+
                 time.sleep(10)  # 주기적으로 대기하여 API 요청 과부하 방지
